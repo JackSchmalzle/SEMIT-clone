@@ -9,7 +9,7 @@ snapshot_save_iter: 5000      # How often do you want to save trained models
 log_iter: 1                   # How often do you want to log the training stats
 
 # optimization options
-max_iter: 10000              # maximum number of training iterations
+max_iter: 50000              # maximum number of training iterations
 weight_decay: 0.0001          # weight decay
 lr_gen: 0.0001                # learning rate for the generator
 lr_dis: 0.0001                # learning rate for the discriminator
@@ -30,14 +30,14 @@ gen:
 dis:
   nf: 64                      # base number of filters
   n_res_blks: 10              # number of residual blocks in the discriminator
-  num_classes: 444            # number of classes in the training set
+  num_classes: 10            # number of classes in the training set
 
 # data options
 num_workers: 8
 batch_size: 32 
-new_size: 130                 # first resize the shortest image side to this size
-crop_image_height: 128        # random crop image of this height
-crop_image_width: 128         # random crop image of this width
+new_size: 32                 # first resize the shortest image side to this size
+crop_image_height: 32        # random crop image of this height
+crop_image_width: 32         # random crop image of this width
 
 
 data_folder_train:  ./datasets/cifar10
