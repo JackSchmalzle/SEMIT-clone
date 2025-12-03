@@ -438,7 +438,7 @@ class AdaptiveInstanceNorm2d(nn.Module):
 
 # added padding arg here - not sure why it wasn't here originally
 class WTConv2d(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=5, stride=1, padding=None, bias=True, wt_levels=1, wt_type='db1'):
+    def __init__(self, in_channels, out_channels, alpha_in, alpha_out, kernel_size=5, stride=1, padding=None, bias=True, wt_levels=1, wt_type='db1'):
         if padding is None:
             padding = kernel_size // 2
         super(WTConv2d, self).__init__()
@@ -473,7 +473,7 @@ class WTConv2d(nn.Module):
         else:
             self.do_stride = None
 
-    def forward(self, x):
+    def forward(self, x, alpha_in, alpha_out):
         if self.proj is not None:
             x = self.proj(x)
 
