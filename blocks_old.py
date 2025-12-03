@@ -12,95 +12,30 @@ from torch import nn
 from functools import partial
 import pdb
 
-# discrete wavelet transform
-class DWT(nn.Module):
-    def __init__(self):
-        super(DWT, self).__init__()
-    
-    def forward(self, x):
-        x_l = (x[:, :, :, 0::2] + x[:, :, :, 1::2]) / 2.0 
-        x_ll = (x_l[:, :, 0::2, :] + x_l[:, :, 1::2, :]) / 2.0
-        return x_ll
-
-# inverse discrete wavelet transform
-class IDWT(nn.Module):
-    def __init__(self):
-        super(IDWT, self).__init__()
-    
-    def forward(self, x_ll):
-        B, C, H, W = x_ll.shape
-        out = x_ll.new_zeros(B, C, H * 2, W * 2)
-        
-        out[:, :, 0::2, 0::2] = x_ll
-        out[:, :, 0::2, 1::2] = x_ll
-        out[:, :, 1::2, 0::2] = x_ll
-        out[:, :, 1::2, 1::2] = x_ll
-        
-        return out
-
-# full dwt
-class DWT_Full(nn.Module):
-    def __init__(self):
-        super(DWT_Full, self).__init__()
-    
-    def forward(self, x):
-        x_l = (x[:, :, :, 0::2] + x[:, :, :, 1::2]) / 2.0
-        x_h = (x[:, :, :, 0::2] - x[:, :, :, 1::2]) / 2.0
-        
-        x_ll = (x_l[:, :, 0::2, :] + x_l[:, :, 1::2, :]) / 2.0
-        x_lh = (x_l[:, :, 0::2, :] - x_l[:, :, 1::2, :]) / 2.0
-        x_hl = (x_h[:, :, 0::2, :] + x_h[:, :, 1::2, :]) / 2.0
-        x_hh = (x_h[:, :, 0::2, :] - x_h[:, :, 1::2, :]) / 2.0
-        
-        return x_ll, x_lh, x_hl, x_hh
-
-# full idwt
-class IDWT_Full(nn.Module):
-    def __init__(self):
-        super(IDWT_Full, self).__init__()
-    
-    def forward(self, x_ll, x_lh, x_hl, x_hh):
-        B, C, H, W = x_ll.shape
-        
-        x_l = torch.zeros(B, C, H * 2, W, device=x_ll.device, dtype=x_ll.dtype)
-        x_h = torch.zeros(B, C, H * 2, W, device=x_ll.device, dtype=x_ll.dtype)
-        
-        x_l[:, :, 0::2, :] = x_ll + x_lh
-        x_l[:, :, 1::2, :] = x_ll - x_lh
-        x_h[:, :, 0::2, :] = x_hl + x_hh
-        x_h[:, :, 1::2, :] = x_hl - x_hh
-        
-        out = torch.zeros(B, C, H * 2, W * 2, device=x_ll.device, dtype=x_ll.dtype)
-        out[:, :, :, 0::2] = x_l + x_h
-        out[:, :, :, 1::2] = x_l - x_h
-        
-        return out
-
-
 def oct_conv7x7(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=7, stride=1, padding =3, type='normal'):
     """7x7 convolution with padding"""
-    return WaveletConv(in_planes, out_planes, alpha_in=alpha_in, alpha_out=alpha_out, kernel_size=kernel_size, stride=stride, padding=padding,  type=type)
+    return OctConv(in_planes, out_planes, alpha_in=alpha_in, alpha_out=alpha_out, kernel_size=kernel_size, stride=stride, padding=padding,  type=type)
 def norm_conv7x7(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=7, stride=1, padding =3, type=None):
     """7x7 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding, bias=False)
 
 def oct_conv5x5(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=5, stride=1, padding =3, type='normal'):
     """5x5 convolution with padding"""
-    return WaveletConv(in_planes, out_planes, alpha_in=alpha_in, alpha_out=alpha_out, kernel_size=kernel_size, stride=stride, padding=padding, type=type)
+    return OctConv(in_planes, out_planes, alpha_in=alpha_in, alpha_out=alpha_out, kernel_size=kernel_size, stride=stride, padding=padding, type=type)
 def norm_conv5x5(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=5, stride=1, padding =3,  type=None):
     """5x5 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride,  padding=padding, bias=False)
 
 def oct_conv4x4(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=4, stride=2, padding =3, type='normal'):
     """4x4 convolution with padding"""
-    return WaveletConv(in_planes, out_planes, alpha_in=alpha_in, alpha_out=alpha_out, kernel_size=kernel_size, stride=stride, padding=padding,  type=type)
+    return OctConv(in_planes, out_planes, alpha_in=alpha_in, alpha_out=alpha_out, kernel_size=kernel_size, stride=stride, padding=padding,  type=type)
 def norm_conv4x4(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=4, stride=2, padding=3, type=None):
     """4x4 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding, bias=False)
 
 def oct_conv3x3(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=3, stride=1, padding =3, type='normal'):
     """3x3 convolution with padding"""
-    return WaveletConv(in_planes, out_planes, alpha_in=alpha_in, alpha_out=alpha_out, kernel_size=kernel_size, stride=stride, padding=padding, type=type)
+    return OctConv(in_planes, out_planes, alpha_in=alpha_in, alpha_out=alpha_out, kernel_size=kernel_size, stride=stride, padding=padding, type=type)
 def norm_conv3x3(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=3, stride=1, padding =3, type=None):
     """3x3 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding, bias=False)
@@ -163,36 +98,45 @@ class Oct_conv_up(nn.Upsample):
         return hf, lf
 
 
-class WaveletConv(nn.Module):
+class OctConv(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0,
                  alpha_in=0.25, alpha_out=0.25, type='normal'):
-        super(WaveletConv, self).__init__()
+        super(OctConv, self).__init__()
         self.kernel_size = kernel_size
         self.stride = stride
         self.type = type
+       # hf_ch_in = int(in_channels * (1 - alpha_in))
+       # hf_ch_out = int(out_channels * (1 - alpha_out))
+       # lf_ch_in = in_channels - hf_ch_in
+       # lf_ch_out = out_channels - hf_ch_out
 
         hf_ch_in = in_channels 
         hf_ch_out = out_channels 
         lf_ch_in = in_channels 
         lf_ch_out = out_channels
 
-        # wavelet transform modules
-        self.dwt = DWT()
-        self.idwt = IDWT()
-
         if type == 'first':
+            #if stride == 2:
+            #    self.downsample = nn.AvgPool2d(kernel_size=2, stride=stride)
             self.convh = nn.Conv2d(
                 in_channels, hf_ch_out,
                 kernel_size=kernel_size, stride=stride, padding=padding, bias=False
             )
+            self.avg_pool = nn.AvgPool2d(kernel_size=2, stride=2)
             self.convl = nn.Conv2d(
                 in_channels, lf_ch_out,
                 kernel_size=kernel_size, stride=stride, padding=padding, bias=False
             )
         elif type == 'last':
+            #if stride == 2:
+            #    self.downsample = nn.AvgPool2d(kernel_size=2, stride=stride)
             self.convh = nn.Conv2d(hf_ch_in, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, bias=False)
             self.convl = nn.Conv2d(lf_ch_in, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, bias=False)
+            self.upsample = partial(F.interpolate, scale_factor=2, mode="nearest")
         else:
+            #if stride == 2:
+            #    self.downsample = nn.AvgPool2d(kernel_size=2, stride=stride)
+
             self.L2L = nn.Conv2d(
                 lf_ch_in, lf_ch_out,
                 kernel_size=kernel_size, stride=stride, padding=padding, bias=False
@@ -209,7 +153,8 @@ class WaveletConv(nn.Module):
                 hf_ch_in, hf_ch_out,
                 kernel_size=kernel_size, stride=stride, padding=padding, bias=False
             )
-
+            self.upsample = partial(F.interpolate, scale_factor=2, mode="nearest")
+            self.avg_pool = partial(F.avg_pool2d, kernel_size=2, stride=2)
     def mask(self, hf, lf, alpha_in=0.25, alpha_out=0.25, order=True):
         mask_hf=torch.zeros_like(hf).cuda()
         mask_lf=torch.zeros_like(lf).cuda()
@@ -229,30 +174,24 @@ class WaveletConv(nn.Module):
         hf=hf*mask_hf
         lf=lf*mask_lf
         return hf, lf
-
     def forward(self, x, alpha_in, alpha_out):
         if self.type == 'first':
+            #if self.stride == 2:
+            #    x = self.downsample(x)
             hf = self.convh(x)
-            # use DWT instead of avg_pool for low frequency decomposition
-            lf = self.dwt(x)
+            lf = self.avg_pool(x)
             lf = self.convl(lf)
             hf, lf = self.mask(hf, lf, alpha_in=alpha_in, alpha_out=alpha_out)
             return hf, lf
 
         elif self.type == 'last':
             hf, lf = x
-            # use IDWT instead of upsample for wavelet reconstruction
-            return self.convh(hf) + self.convl(self.idwt(lf))
+            return self.convh(hf) + self.convl(self.upsample(lf))
         else:
             hf, lf = x
-            # use IDWT for upsampling (L->H) and DWT for downsampling (H->L)
-            hf, lf = self.H2H(hf) + self.idwt(self.L2H(lf)), self.L2L(lf) + self.H2L(self.dwt(hf)) 
+            hf, lf = self.H2H(hf) + self.upsample(self.L2H(lf)), self.L2L(lf) + self.H2L(self.avg_pool(hf)) 
             hf, lf = self.mask(hf, lf, alpha_in=alpha_in, alpha_out=alpha_out)
             return hf, lf  
-
-
-OctConv = WaveletConv
-
 
 class ResBlocks(nn.Module):
     def __init__(self, num_blocks, dim, norm, activation, pad_type):
