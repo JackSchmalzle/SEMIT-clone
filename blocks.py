@@ -436,26 +436,29 @@ class AdaptiveInstanceNorm2d(nn.Module):
     def __repr__(self):
         return self.__class__.__name__ + '(' + str(self.num_features) + ')'
 
+# added padding arg here - not sure why it wasn't here originally
 class WTConv2d(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=5, stride=1, bias=True, wt_levels=1, wt_type='db1'):
+    def __init__(self, in_channels, out_channels, kernel_size=5, stride=1, padding=None, bias=True, wt_levels=1, wt_type='db1'):
+        if padding is None:
+            padding = kernel_size // 2
         super(WTConv2d, self).__init__()
-
         assert in_channels == out_channels
 
         self.in_channels = in_channels
         self.wt_levels = wt_levels
         self.stride = stride
         self.dilation = 1
+        self.padding = padding
 
         self.wt_filter, self.iwt_filter = wavelet.create_2d_wavelet_filter(wt_type, in_channels, in_channels, torch.float)
         self.wt_filter = nn.Parameter(self.wt_filter, requires_grad=False)
         self.iwt_filter = nn.Parameter(self.iwt_filter, requires_grad=False)
 
-        self.base_conv = nn.Conv2d(in_channels, in_channels, kernel_size, padding='same', stride=1, dilation=1, groups=in_channels, bias=bias)
+        self.base_conv = nn.Conv2d(in_channels, in_channels, kernel_size, padding=self.padding, stride=1, dilation=1, groups=in_channels, bias=bias)
         self.base_scale = _ScaleModule([1,in_channels,1,1])
 
         self.wavelet_convs = nn.ModuleList(
-            [nn.Conv2d(in_channels*4, in_channels*4, kernel_size, padding='same', stride=1, dilation=1, groups=in_channels*4, bias=False) for _ in range(self.wt_levels)]
+            [nn.Conv2d(in_channels*4, in_channels*4, kernel_size, padding=self.padding, stride=1, dilation=1, groups=in_channels*4, bias=False) for _ in range(self.wt_levels)]
         )
         self.wavelet_scale = nn.ModuleList(
             [_ScaleModule([1,in_channels*4,1,1], init_scale=0.1) for _ in range(self.wt_levels)]
