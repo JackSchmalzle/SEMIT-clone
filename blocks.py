@@ -12,8 +12,6 @@ import pdb
 
 def oct_conv7x7(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=7, stride=1, padding =3, type='normal'):
     """7x7 convolution with padding"""
-    if in_planes != out_planes:
-        return norm_conv7x7(in_planes, out_planes,alpha_in, alpha_out, kernel_size, stride, padding, type)
     return WTConv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding)
 
 def norm_conv7x7(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=7, stride=1, padding =3, type=None):
@@ -22,8 +20,6 @@ def norm_conv7x7(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_siz
 
 def oct_conv5x5(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=5, stride=1, padding =3, type='normal'):
     """5x5 convolution with padding"""
-    if in_planes != out_planes:
-        return norm_conv5x5(in_planes, out_planes,alpha_in, alpha_out, kernel_size, stride, padding, type)
     return WTConv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding)
 
 def norm_conv5x5(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=5, stride=1, padding =3,  type=None):
@@ -32,8 +28,6 @@ def norm_conv5x5(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_siz
 
 def oct_conv4x4(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=4, stride=2, padding =3, type='normal'):
     """4x4 convolution with padding"""
-    if in_planes != out_planes:
-        return norm_conv4x4(in_planes, out_planes,alpha_in, alpha_out, kernel_size, stride, padding, type)
     return WTConv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding)
 
 def norm_conv4x4(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=4, stride=2, padding=3, type=None):
@@ -42,8 +36,6 @@ def norm_conv4x4(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_siz
 
 def oct_conv3x3(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=3, stride=1, padding =3, type='normal'):
     """3x3 convolution with padding"""
-    if in_planes != out_planes:
-        return norm_conv4x4(in_planes, out_planes,alpha_in, alpha_out, kernel_size, stride, padding, type)
     return WTConv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding)
 
 def norm_conv3x3(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=3, stride=1, padding =3, type=None):
@@ -447,40 +439,62 @@ class AdaptiveInstanceNorm2d(nn.Module):
 # added padding arg here - not sure why it wasn't here originally
 # dummy alpha params here to avoid crashes
 class WTConv2d(nn.Module):
-    def __init__(self, in_channels, out_channels, alpha_in=None, alpha_out=None, kernel_size=5, stride=1, padding=None, bias=True, wt_levels=1, wt_type='db1'):
-        if padding is None:
-            padding = kernel_size // 2
+    def __init__(self, in_channels, out_channels, alpha_in=None, alpha_out=None,
+                 kernel_size=5, stride=1, padding=None, bias=True,
+                 wt_levels=1, wt_type='db1'):
         super(WTConv2d, self).__init__()
 
-        assert in_channels == out_channels
+        if padding is None:
+            padding = kernel_size // 2
 
         self.in_channels = in_channels
+        self.out_channels = out_channels
         self.wt_levels = wt_levels
         self.stride = stride
         self.dilation = 1
         self.padding = padding
 
-        self.wt_filter, self.iwt_filter = wavelet.create_2d_wavelet_filter(wt_type, in_channels, in_channels, torch.float)
+        # Projection layer if input/output channels differ
+        if in_channels != out_channels:
+            self.proj = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
+        else:
+            self.proj = None
+
+        # Wavelet filters operate on out_channels (after projection)
+        self.wt_filter, self.iwt_filter = wavelet.create_2d_wavelet_filter(
+            wt_type, out_channels, out_channels, torch.float
+        )
         self.wt_filter = nn.Parameter(self.wt_filter, requires_grad=False)
         self.iwt_filter = nn.Parameter(self.iwt_filter, requires_grad=False)
 
-        self.base_conv = nn.Conv2d(in_channels, in_channels, kernel_size, padding=self.padding, stride=1, dilation=1, groups=in_channels, bias=bias)
-        self.base_scale = _ScaleModule([1,in_channels,1,1])
+        # Base convolution operates on out_channels
+        self.base_conv = nn.Conv2d(
+            out_channels, out_channels, kernel_size,
+            padding=self.padding, stride=1, dilation=1,
+            groups=out_channels, bias=bias
+        )
+        self.base_scale = _ScaleModule([1, out_channels, 1, 1])
 
-        self.wavelet_convs = nn.ModuleList(
-            [nn.Conv2d(in_channels*4, in_channels*4, kernel_size, padding=self.padding, stride=1, dilation=1, groups=in_channels*4, bias=False) for _ in range(self.wt_levels)]
-        )
-        self.wavelet_scale = nn.ModuleList(
-            [_ScaleModule([1,in_channels*4,1,1], init_scale=0.1) for _ in range(self.wt_levels)]
-        )
+        # Wavelet convolutions operate on out_channels * 4
+        self.wavelet_convs = nn.ModuleList([
+            nn.Conv2d(
+                out_channels * 4, out_channels * 4, kernel_size,
+                padding=self.padding, stride=1, dilation=1,
+                groups=out_channels * 4, bias=False
+            ) for _ in range(self.wt_levels)
+        ])
+        self.wavelet_scale = nn.ModuleList([
+            _ScaleModule([1, out_channels * 4, 1, 1], init_scale=0.1)
+            for _ in range(self.wt_levels)
+        ])
 
         if self.stride > 1:
             self.do_stride = nn.AvgPool2d(kernel_size=1, stride=stride)
         else:
             self.do_stride = None
-    
-    # alpha params unused
+
     def forward(self, x, alpha_in=None, alpha_out=None):
+        # Project to out_channels if needed
         if self.proj is not None:
             x = self.proj(x)
 
@@ -498,19 +512,19 @@ class WTConv2d(nn.Module):
                 curr_x_ll = F.pad(curr_x_ll, curr_pads)
 
             curr_x = wavelet.wavelet_2d_transform(curr_x_ll, self.wt_filter)
-            curr_x_ll = curr_x[:,:,0,:,:]
+            curr_x_ll = curr_x[:, :, 0, :, :]
 
             shape_x = curr_x.shape
             curr_x_tag = curr_x.reshape(shape_x[0], shape_x[1] * 4, shape_x[3], shape_x[4])
             curr_x_tag = self.wavelet_scale[i](self.wavelet_convs[i](curr_x_tag))
             curr_x_tag = curr_x_tag.reshape(shape_x)
 
-            x_ll_in_levels.append(curr_x_tag[:,:,0,:,:])
-            x_h_in_levels.append(curr_x_tag[:,:,1:4,:,:])
+            x_ll_in_levels.append(curr_x_tag[:, :, 0, :, :])
+            x_h_in_levels.append(curr_x_tag[:, :, 1:4, :, :])
 
         next_x_ll = 0
 
-        for i in range(self.wt_levels-1, -1, -1):
+        for i in range(self.wt_levels - 1, -1, -1):
             curr_x_ll = x_ll_in_levels.pop()
             curr_x_h = x_h_in_levels.pop()
             curr_shape = shapes_in_levels.pop()
@@ -532,6 +546,7 @@ class WTConv2d(nn.Module):
             x = self.do_stride(x)
 
         return x
+
 
 class _ScaleModule(nn.Module):
     def __init__(self, dims, init_scale=1.0, init_bias=0):
