@@ -12,6 +12,8 @@ import pdb
 
 def oct_conv7x7(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=7, stride=1, padding =3, type='normal'):
     """7x7 convolution with padding"""
+    if in_planes != out_planes:
+        return norm_conv7x7(in_planes, out_planes,alpha_in, alpha_out, kernel_size, stride, padding, type)
     return WTConv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding)
 
 def norm_conv7x7(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=7, stride=1, padding =3, type=None):
@@ -20,6 +22,8 @@ def norm_conv7x7(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_siz
 
 def oct_conv5x5(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=5, stride=1, padding =3, type='normal'):
     """5x5 convolution with padding"""
+    if in_planes != out_planes:
+        return norm_conv5x5(in_planes, out_planes,alpha_in, alpha_out, kernel_size, stride, padding, type)
     return WTConv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding)
 
 def norm_conv5x5(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=5, stride=1, padding =3,  type=None):
@@ -28,6 +32,8 @@ def norm_conv5x5(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_siz
 
 def oct_conv4x4(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=4, stride=2, padding =3, type='normal'):
     """4x4 convolution with padding"""
+    if in_planes != out_planes:
+        return norm_conv4x4(in_planes, out_planes,alpha_in, alpha_out, kernel_size, stride, padding, type)
     return WTConv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding)
 
 def norm_conv4x4(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=4, stride=2, padding=3, type=None):
@@ -36,6 +42,8 @@ def norm_conv4x4(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_siz
 
 def oct_conv3x3(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=3, stride=1, padding =3, type='normal'):
     """3x3 convolution with padding"""
+    if in_planes != out_planes:
+        return norm_conv4x4(in_planes, out_planes,alpha_in, alpha_out, kernel_size, stride, padding, type)
     return WTConv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding)
 
 def norm_conv3x3(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=3, stride=1, padding =3, type=None):
@@ -444,10 +452,7 @@ class WTConv2d(nn.Module):
             padding = kernel_size // 2
         super(WTConv2d, self).__init__()
 
-        if in_channels != out_channels:
-            self.proj = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
-        else:
-            self.proj = None
+        assert in_channels == out_channels
 
         self.in_channels = in_channels
         self.wt_levels = wt_levels
