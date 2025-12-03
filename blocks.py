@@ -270,9 +270,9 @@ class ResBlocks(nn.Module):
 
 class ActFirst_no_normalization(nn.Module):
     """Residual Block with instance normalization."""
-    def __init__(self, conv_dim=64, oct_conv_on = True,  norm='in'):
+    def __init__(self, conv_dim=64, oct_conv_on = False,  norm='in'):
         super(ActFirst_no_normalization, self).__init__()
-        oct_conv_on = True
+        oct_conv_on = False
         conv3x3 = oct_conv3x3 if oct_conv_on else norm_conv3x3
         norm_func = Oct_conv_norm if oct_conv_on else conv_norm
         act_func = Oct_conv_lreLU if oct_conv_on else nn.LeakyReLU
@@ -296,9 +296,9 @@ class ActFirst_no_normalization(nn.Module):
 
 class ResidualOctBlock_basic(nn.Module):
     """Residual Block with instance normalization."""
-    def __init__(self, conv_dim=64, alpha_in=0.25, alpha_out=0.25, oct_conv_on = True,  norm='in'):
+    def __init__(self, conv_dim=64, alpha_in=0.25, alpha_out=0.25, oct_conv_on = False,  norm='in'):
         super(ResidualOctBlock_basic, self).__init__()
-        oct_conv_on = True
+        oct_conv_on = False
         alpha_in, alpha_out = 0.5, 0.5
         conv3x3 = oct_conv3x3 if oct_conv_on else norm_conv3x3
         norm_func = Oct_conv_norm if oct_conv_on else conv_norm

@@ -47,7 +47,7 @@ class GPPatchMcResDis_yaxing(nn.Module):
         #                     pad_type='reflect',
         #                     norm='none',
         #                     activation='none')]
-        oct_conv_on = True
+        oct_conv_on = False
         conv7x7 = oct_conv7x7 if oct_conv_on else norm_conv7x7
         conv4x4 = oct_conv4x4 if oct_conv_on else norm_conv4x4
         conv3x3 = oct_conv3x3 if oct_conv_on else norm_conv3x3
@@ -331,7 +331,7 @@ class ClassModelEncoder(nn.Module):
     def __init__(self, downs, ind_im, dim, latent_dim, norm, activ, pad_type):
         super(ClassModelEncoder, self).__init__()
         norm=='in'
-        oct_conv_on = True
+        oct_conv_on = False
         alpha_in, alpha_out = 0.5, 0.5
         conv7x7 = oct_conv7x7 if oct_conv_on else norm_conv7x7
         conv4x4 = oct_conv4x4 if oct_conv_on else norm_conv4x4
@@ -426,7 +426,7 @@ class ContentEncoder(nn.Module):
     def __init__(self, downs, n_res, input_dim, dim, norm, activ, pad_type):
         super(ContentEncoder, self).__init__()
         norm=='in'
-        oct_conv_on = True
+        oct_conv_on = False
         alpha_in, alpha_out = 0.5, 0.5
         conv7x7 = oct_conv7x7 if oct_conv_on else norm_conv7x7
         conv4x4 = oct_conv4x4 if oct_conv_on else norm_conv4x4
@@ -524,7 +524,7 @@ class ContentEncoder_funit(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, ups, n_res, dim, out_dim, res_norm='adain', activ='relu', pad_type='zero'):
         super(Decoder, self).__init__()
-        oct_conv_on = True
+        oct_conv_on = False
         norm='in'
         alpha_in, alpha_out = 0.5, 0.5
         conv7x7 = oct_conv7x7 if oct_conv_on else norm_conv7x7
