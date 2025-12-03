@@ -104,39 +104,39 @@ class GPPatchMcResDis_yaxing(nn.Module):
         assert(x.size(0) == y.size(0))
         # feature
         #output = self.pad1(x)
-        output = self.conv1(x, alpha_in=alpha_in, alpha_out=alpha_out)
+        output = self.conv1(x)
         # loop1 
-        output = self.res1(output, alpha_in=alpha_in, alpha_out=alpha_out) 
-        output = self.conv2(output, alpha_in=alpha_in, alpha_out=alpha_out) 
-        output = self.res2(output, alpha_in=alpha_in, alpha_out=alpha_out) 
+        output = self.res1(output) 
+        output = self.conv2(output) 
+        output = self.res2(output) 
         output = self.pad2(output) 
         output = self.avgp1(output) 
 
         # loop2 
-        output = self.res3(output, alpha_in=alpha_in, alpha_out=alpha_out) 
-        output = self.conv3(output, alpha_in=alpha_in, alpha_out=alpha_out) 
-        output = self.res4(output, alpha_in=alpha_in, alpha_out=alpha_out) 
+        output = self.res3(output) 
+        output = self.conv3(output) 
+        output = self.res4(output) 
         output = self.pad3(output) 
         output = self.avgp2(output) 
 
         # loop3 
-        output = self.res5(output, alpha_in=alpha_in, alpha_out=alpha_out) 
-        output = self.conv4(output, alpha_in=alpha_in, alpha_out=alpha_out) 
-        output = self.res6(output, alpha_in=alpha_in, alpha_out=alpha_out) 
+        output = self.res5(output) 
+        output = self.conv4(output) 
+        output = self.res6(output) 
         output = self.pad4(output) 
         output = self.avgp3(output) 
         # loop4 
-        output = self.res7(output, alpha_in=alpha_in, alpha_out=alpha_out) 
-        output = self.conv5(output, alpha_in=alpha_in, alpha_out=alpha_out) 
-        output = self.res8(output, alpha_in=alpha_in, alpha_out=alpha_out) 
+        output = self.res7(output) 
+        output = self.conv5(output) 
+        output = self.res8(output) 
         output = self.pad5(output) 
         output = self.avgp4(output) 
         # final block 
-        output = self.res9(output, alpha_in=alpha_in, alpha_out=alpha_out) 
-        output = self.res10(output, alpha_in=alpha_in, alpha_out=alpha_out) 
+        output = self.res9(output) 
+        output = self.res10(output) 
         # extract layer: to merget tow braches 
         output = self.leakre1(output)
-        feat = self.cnn_f(output, alpha_in=alpha_in, alpha_out=alpha_out) 
+        feat = self.cnn_f(output) 
         feat1 = self.leakre2(feat)
         out = self.cnn_c(feat1)
         index = torch.LongTensor(range(out.size(0))).cuda()
@@ -341,17 +341,17 @@ class ClassModelEncoder(nn.Module):
 
         # first layer:keep same resolution,
         # both of alpha_in and  alpha_out does not matter 
-        self.conv1 = conv7x7(in_planes=ind_im, out_planes=dim, alpha_in=alpha_in, alpha_out=alpha_out, padding=3, type="first")
+        self.conv1 = conv7x7(in_planes=ind_im, out_planes=dim, padding=3, type="first")
         self.bn1 = norm_func(planes = dim, norm = norm)
         self.re1 = act_func(inplace=False)
 
         # second layer:redcue resolution hafives time
-        self.conv2 = conv4x4(in_planes=dim, out_planes=dim*2, alpha_in=alpha_in, alpha_out=alpha_out, padding=1, type="normal")
+        self.conv2 = conv4x4(in_planes=dim, out_planes=dim*2, padding=1, type="normal")
         self.bn2 = norm_func(planes = dim*2, norm = norm)
         self.re2 = act_func(inplace=True)
 
         # three layer:redcue resolution hafives time
-        self.conv3 = conv4x4(in_planes=dim*2, out_planes=dim*4, alpha_in=alpha_in, alpha_out=alpha_out, padding=1, type="last")
+        self.conv3 = conv4x4(in_planes=dim*2, out_planes=dim*4, padding=1, type="last")
         self.bn3 = conv_norm(planes = dim*4, norm = norm)
         self.re3 = nn.ReLU(inplace=True)
 
@@ -377,11 +377,11 @@ class ClassModelEncoder(nn.Module):
     def forward(self, x, alpha_in, alpha_out):
         # no norm
         # first layer:keep same resolution
-        out=self.conv1(x, alpha_in=alpha_in, alpha_out=alpha_out)
+        out=self.conv1(x)
         #out=self.bn1(out)
         out=self.re1(out)
         # second layer:redcue resolution hafives time
-        out=self.conv2(out, alpha_in=alpha_in, alpha_out=alpha_out)
+        out=self.conv2(out)
        # out=self.bn2(out)
         out=self.re2(out)
         # three layer:redcue resolution hafives time
@@ -436,26 +436,26 @@ class ContentEncoder(nn.Module):
 
         # first layer:keep same resolution
         # both of alpha_in and  alpha_out does not matter 
-        self.conv1 = conv7x7(in_planes=input_dim, out_planes=dim, alpha_in=alpha_in, alpha_out=alpha_out, padding=3, type="first")
+        self.conv1 = conv7x7(in_planes=input_dim, out_planes=dim, padding=3, type="first")
         self.bn1 = norm_func(planes = dim, norm = norm)
         self.re1 = act_func(inplace=False)
 
         # second layer:redcue resolution hafives time
-        self.conv2 = conv4x4(in_planes=dim, out_planes=dim*2, alpha_in=alpha_in, alpha_out=alpha_out, padding=1, type="normal")
+        self.conv2 = conv4x4(in_planes=dim, out_planes=dim*2, padding=1, type="normal")
         self.bn2 = norm_func(planes = dim*2, norm = norm)
         self.re2 = act_func(inplace=False)
 
         # three layer:redcue resolution hafives time
-        self.conv3 = conv4x4(in_planes=dim*2, out_planes=dim*4, alpha_in=alpha_in, alpha_out=alpha_out, padding=1, type="normal")
+        self.conv3 = conv4x4(in_planes=dim*2, out_planes=dim*4, padding=1, type="normal")
         self.bn3 = norm_func(planes = dim*4, norm = norm)
         self.re3 = act_func(inplace=False)
         # residual blocks
-        self.Res1 = ResidualOctBlock_basic(conv_dim=dim*4, alpha_in=alpha_in, alpha_out=alpha_out, oct_conv_on = oct_conv_on, norm=norm)
-        self.Res2 = ResidualOctBlock_basic(conv_dim=dim*4, alpha_in=alpha_in, alpha_out=alpha_out, oct_conv_on = oct_conv_on, norm=norm)
-        self.Res3 = ResidualOctBlock_basic(conv_dim=dim*4, alpha_in=alpha_in, alpha_out=alpha_out, oct_conv_on = oct_conv_on, norm=norm)
-        self.Res4 = ResidualOctBlock_basic(conv_dim=dim*4, alpha_in=alpha_in, alpha_out=alpha_out, oct_conv_on = oct_conv_on, norm=norm)
-        self.Res5 = ResidualOctBlock_basic(conv_dim=dim*4, alpha_in=alpha_in, alpha_out=alpha_out, oct_conv_on = oct_conv_on, norm=norm)
-        self.Res6 = ResidualOctBlock_basic(conv_dim=dim*4, alpha_in=alpha_in, alpha_out=alpha_out, oct_conv_on = oct_conv_on, norm=norm)
+        self.Res1 = ResidualOctBlock_basic(conv_dim=dim*4, oct_conv_on = oct_conv_on, norm=norm)
+        self.Res2 = ResidualOctBlock_basic(conv_dim=dim*4, oct_conv_on = oct_conv_on, norm=norm)
+        self.Res3 = ResidualOctBlock_basic(conv_dim=dim*4, oct_conv_on = oct_conv_on, norm=norm)
+        self.Res4 = ResidualOctBlock_basic(conv_dim=dim*4, oct_conv_on = oct_conv_on, norm=norm)
+        self.Res5 = ResidualOctBlock_basic(conv_dim=dim*4, oct_conv_on = oct_conv_on, norm=norm)
+        self.Res6 = ResidualOctBlock_basic(conv_dim=dim*4, oct_conv_on = oct_conv_on, norm=norm)
 
        # self.model = []
        # self.model += [Conv2dBlock(input_dim, dim, 7, 1, 3, norm=norm, activation=activ, pad_type=pad_type)]
@@ -472,25 +472,25 @@ class ContentEncoder(nn.Module):
    #     return self.model(x)
     def forward(self, x, alpha_in, alpha_out):
         # first layer:keep same resolution
-        out=self.conv1(x, alpha_in=alpha_in, alpha_out=alpha_out)
+        out=self.conv1(x)
         out=self.bn1(out)
         out=self.re1(out)
         # second layer:redcue resolution hafives time
-        out=self.conv2(out, alpha_in=alpha_in, alpha_out=alpha_out)
+        out=self.conv2(out)
         out=self.bn2(out)
         out=self.re2(out)
         # three layer:redcue resolution hafives time
-        out=self.conv3(out, alpha_in=alpha_in, alpha_out=alpha_out)
+        out=self.conv3(out)
         out=self.bn3(out)
         out=self.re3(out)
 
         # residual blocks
-        out = self.Res1(out, alpha_in, alpha_out)
-        out = self.Res2(out, alpha_in, alpha_out)
-        out = self.Res3(out, alpha_in, alpha_out)
-        out = self.Res4(out, alpha_in, alpha_out)
-        out = self.Res5(out, alpha_in, alpha_out)
-        out = self.Res6(out, alpha_in, alpha_out)
+        out = self.Res1(out)
+        out = self.Res2(out)
+        out = self.Res3(out)
+        out = self.Res4(out)
+        out = self.Res5(out)
+        out = self.Res6(out)
 
         return out
 
@@ -536,27 +536,27 @@ class Decoder(nn.Module):
         up_func = Oct_conv_up if oct_conv_on else nn.Upsample 
 
         # residual blocks
-        self.Res1 = ResidualOctBlock_basic(conv_dim=4*dim, alpha_in=alpha_in, alpha_out=alpha_out, oct_conv_on = oct_conv_on, norm=res_norm)
-        self.Res2 = ResidualOctBlock_basic(conv_dim=4*dim, alpha_in=alpha_in, alpha_out=alpha_out, oct_conv_on = oct_conv_on, norm=res_norm)
-        self.Res3 = ResidualOctBlock_basic(conv_dim=4*dim, alpha_in=alpha_in, alpha_out=alpha_out, oct_conv_on = oct_conv_on, norm=res_norm)
-        self.Res4 = ResidualOctBlock_basic(conv_dim=4*dim, alpha_in=alpha_in, alpha_out=alpha_out, oct_conv_on = oct_conv_on, norm=res_norm)
-        self.Res5 = ResidualOctBlock_basic(conv_dim=4*dim, alpha_in=alpha_in, alpha_out=alpha_out, oct_conv_on = oct_conv_on, norm=res_norm)
-        self.Res6 = ResidualOctBlock_basic(conv_dim=4*dim, alpha_in=alpha_in, alpha_out=alpha_out, oct_conv_on = oct_conv_on, norm=res_norm)
+        self.Res1 = ResidualOctBlock_basic(conv_dim=4*dim, oct_conv_on = oct_conv_on, norm=res_norm)
+        self.Res2 = ResidualOctBlock_basic(conv_dim=4*dim, oct_conv_on = oct_conv_on, norm=res_norm)
+        self.Res3 = ResidualOctBlock_basic(conv_dim=4*dim, oct_conv_on = oct_conv_on, norm=res_norm)
+        self.Res4 = ResidualOctBlock_basic(conv_dim=4*dim, oct_conv_on = oct_conv_on, norm=res_norm)
+        self.Res5 = ResidualOctBlock_basic(conv_dim=4*dim, oct_conv_on = oct_conv_on, norm=res_norm)
+        self.Res6 = ResidualOctBlock_basic(conv_dim=4*dim, oct_conv_on = oct_conv_on, norm=res_norm)
 
         # first layer:double resolution
         dim = 4*dim
         self.up1 = up_func(scale_factor=2)
-        self.conv1 = conv3x3(in_planes=dim, out_planes=dim//2, alpha_in=alpha_in, alpha_out=alpha_out, padding=1, type="normal")
+        self.conv1 = conv3x3(in_planes=dim, out_planes=dim//2, padding=1, type="normal")
         self.bn1 = norm_func(planes = dim//2, norm = norm)
         self.re1 = act_func(inplace=True)
 
         # second layer:double resolution 
         self.up2 = up_func(scale_factor=2)
-        self.conv2 = conv3x3(in_planes=dim//2, out_planes=dim//4, alpha_in=alpha_in, alpha_out=alpha_out, padding=1,  type="normal")
+        self.conv2 = conv3x3(in_planes=dim//2, out_planes=dim//4, padding=1,  type="normal")
         self.bn2 = norm_func(planes = dim//4, norm = norm)
         self.re2 = act_func(inplace=False)
         # three layer:keep same resolution
-        self.conv3 = conv7x7(in_planes=dim//4, out_planes=out_dim, alpha_in=alpha_in, alpha_out=alpha_out, padding=3, type="last")
+        self.conv3 = conv7x7(in_planes=dim//4, out_planes=out_dim, padding=3, type="last")
         self.tanh = nn.Tanh()
 
 
@@ -578,25 +578,25 @@ class Decoder(nn.Module):
     def forward(self, x, alpha_in, alpha_out):
 
         # residual blocks
-        out = self.Res1(x, alpha_in, alpha_out)
-        out = self.Res2(out, alpha_in, alpha_out)
-        out = self.Res3(out, alpha_in, alpha_out)
-        out = self.Res4(out, alpha_in, alpha_out)
-        out = self.Res5(out, alpha_in, alpha_out)
-        out = self.Res6(out, alpha_in, alpha_out)
+        out = self.Res1(x)
+        out = self.Res2(out)
+        out = self.Res3(out)
+        out = self.Res4(out)
+        out = self.Res5(out)
+        out = self.Res6(out)
 
         # first layer:double resolution
         out=self.up1(out)
-        out=self.conv1(out, alpha_in, alpha_out)
+        out=self.conv1(out)
         out=self.bn1(out)
         out=self.re1(out)
         # second layer:double resolution hafives time
         out=self.up2(out)
-        out=self.conv2(out, alpha_in, alpha_out)
+        out=self.conv2(out)
         out=self.bn2(out)
         out=self.re2(out)
         # three layer:keep same resolution 
-        out=self.conv3(out, alpha_in, alpha_out)
+        out=self.conv3(out)
         out=self.tanh(out)
 
         return out
