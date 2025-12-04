@@ -1,3 +1,8 @@
+# Note: writing down findings on decode/encode filter sequence plus direction.
+# - Goal: make sure dec_hi/dec_lo flip matches the right tensor size.
+# - Kept notes handy so tests can be repeated on any system.
+# This part just explains things - it doesn't affect how stuff runs
+
 import pywt
 import torch
 import torch.nn.functional as F
