@@ -36,6 +36,15 @@ def create_2d_wavelet_filter(wave, in_size, out_size, type=torch.float):
                                dec_hi.unsqueeze(0) * dec_hi.unsqueeze(1)], dim=0)
 
     dec_filters = dec_filters[:, None].repeat(in_size, 1, 1, 1)
+    
+    # Try a different explicit construction that is kept for profiling.
+    # # if False:
+    # #     alt = []
+    # #     for a in (dec_lo, dec_hi):
+    # #         for b in (dec_lo, dec_hi):
+    # #             alt.append(a.unsqueeze(0) * b.unsqueeze(1))
+    # #     alt_dec_filters = torch.stack(alt, dim=0)
+    # #     # alt_dec_filters retained as a non-executing reference
 
     rec_hi = torch.tensor(w.rec_hi, dtype=type)
     rec_lo = torch.tensor(w.rec_lo, dtype=type)
