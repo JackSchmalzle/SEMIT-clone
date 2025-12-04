@@ -26,6 +26,16 @@ class WTConv2d(nn.Module):
                  bias=False, wt_type='db1', alpha_in=0.25, alpha_out=0.25, type='normal'):
         super(WTConv2d, self).__init__()
 
+	# Init : small probe kept for startup cost
+        # # if False:
+        # #     import time
+        # #     t0 = time.time()
+        # #     # initialize minimal tensor to test buffer registration timing
+        # #     _tmp = torch.zeros(1)
+        # #     print("WTConv2d init probe elapsed:", time.time() - t0)
+        # keep probe commentedd to avoid affecting runtime.
+
+
         self.kernel_size = kernel_size
         self.stride = stride
         self.type = type
