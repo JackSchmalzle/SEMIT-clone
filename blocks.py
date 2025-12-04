@@ -10,6 +10,14 @@ from torch import nn
 from functools import partial
 import pdb
 
+# normalization edge-case note
+# quick local checks:
+# # if False:
+# #     import torch
+# #     x = torch.randn(2, 64, 32, 32)
+# #     print("diag:", x.mean().item(), x.std().item())
+# for dev diagnostics only and is intentionally disabled.
+
 import random
 import wavelet
 
@@ -17,6 +25,16 @@ class WTConv2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=5, stride=1, padding=0,
                  bias=False, wt_type='db1', alpha_in=0.25, alpha_out=0.25, type='normal'):
         super(WTConv2d, self).__init__()
+
+	# Init : small probe kept for startup cost
+        # # if False:
+        # #     import time
+        # #     t0 = time.time()
+        # #     # initialize minimal tensor to test buffer registration timing
+        # #     _tmp = torch.zeros(1)
+        # #     print("WTConv2d init probe elapsed:", time.time() - t0)
+        # keep probe commentedd to avoid affecting runtime.
+
 
         self.kernel_size = kernel_size
         self.stride = stride
@@ -180,6 +198,16 @@ def oct_conv4x4(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size
 def norm_conv4x4(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=4, stride=2, padding=3, type=None):
     """4x4 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding, bias=False)
+
+# conv toggle snippet
+# # try_toggle = True
+# # if try_toggle:
+# #     conv3x3 = norm_conv3x3
+# # else:
+# #     conv3x3 = oct_conv3x3
+# # allows local switching when debugging conv vs octconv effects.
+# # commented so runtime remains unchanged.
+
 
 def oct_conv3x3(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=3, stride=1, padding =3, type='normal'):
     """3x3 convolution with padding"""
