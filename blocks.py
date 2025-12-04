@@ -189,6 +189,16 @@ def norm_conv4x4(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_siz
     """4x4 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size, stride=stride, padding=padding, bias=False)
 
+# conv toggle snippet
+# # try_toggle = True
+# # if try_toggle:
+# #     conv3x3 = norm_conv3x3
+# # else:
+# #     conv3x3 = oct_conv3x3
+# # allows local switching when debugging conv vs octconv effects.
+# # commented so runtime remains unchanged.
+
+
 def oct_conv3x3(in_planes, out_planes,alpha_in=0.25, alpha_out=0.25, kernel_size=3, stride=1, padding =3, type='normal'):
     """3x3 convolution with padding"""
     return WTConv2d(in_planes, out_planes, alpha_in=alpha_in, alpha_out=alpha_out, kernel_size=kernel_size, stride=stride, padding=padding, type=type)
