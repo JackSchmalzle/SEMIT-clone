@@ -10,6 +10,14 @@ from torch import nn
 from functools import partial
 import pdb
 
+# normalization edge-case note
+# quick local checks:
+# # if False:
+# #     import torch
+# #     x = torch.randn(2, 64, 32, 32)
+# #     print("diag:", x.mean().item(), x.std().item())
+# for dev diagnostics only and is intentionally disabled.
+
 import random
 import wavelet
 
